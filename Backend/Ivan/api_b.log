@@ -1,0 +1,40 @@
+2025-10-18 15:32:23,496 [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:7000
+2025-10-18 15:32:23,497 [INFO] [33mPress CTRL+C to quit[0m
+2025-10-18 15:32:23,498 [INFO]  * Restarting with stat
+2025-10-18 15:32:23,854 [WARNING]  * Debugger is active!
+2025-10-18 15:32:23,857 [INFO]  * Debugger PIN: 132-479-061
+2025-10-18 15:37:45,577 [INFO]  * Detected change in 'C:\\Users\\Ivan\\Desktop\\PoliHackers\\PoliHackers\\Backend\\Ivan\\api.py', reloading
+2025-10-18 15:37:45,616 [INFO]  * Restarting with stat
+2025-10-18 15:37:46,035 [WARNING]  * Debugger is active!
+2025-10-18 15:37:46,039 [INFO]  * Debugger PIN: 132-479-061
+2025-10-18 15:50:10,403 [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:7000
+2025-10-18 15:50:10,403 [INFO] [33mPress CTRL+C to quit[0m
+2025-10-18 15:50:10,404 [INFO]  * Restarting with stat
+2025-10-18 15:50:10,753 [WARNING]  * Debugger is active!
+2025-10-18 15:50:10,756 [INFO]  * Debugger PIN: 132-479-061
+2025-10-18 15:57:09,099 [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:7000
+2025-10-18 15:57:09,099 [INFO] [33mPress CTRL+C to quit[0m
+2025-10-18 15:57:09,105 [INFO]  * Restarting with stat
+2025-10-18 15:57:09,503 [WARNING]  * Debugger is active!
+2025-10-18 15:57:09,506 [INFO]  * Debugger PIN: 132-479-061
+2025-10-18 15:58:44,046 [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:7000
+2025-10-18 15:58:44,046 [INFO] [33mPress CTRL+C to quit[0m
+2025-10-18 15:58:44,047 [INFO]  * Restarting with stat
+2025-10-18 15:58:44,441 [WARNING]  * Debugger is active!
+2025-10-18 15:58:44,444 [INFO]  * Debugger PIN: 132-479-061
+2025-10-18 16:04:35,779 [INFO]  * Detected change in 'C:\\Users\\Ivan\\Desktop\\PoliHackers\\PoliHackers\\Backend\\Ivan\\api.py', reloading
+2025-10-18 16:04:35,832 [INFO]  * Restarting with stat
+2025-10-18 16:04:36,142 [INFO]  * Detected change in 'C:\\Users\\Ivan\\Desktop\\PoliHackers\\PoliHackers\\Backend\\Ivan\\api.py', reloading
+2025-10-18 16:04:36,183 [INFO]  * Restarting with stat
+2025-10-18 16:04:36,399 [WARNING]  * Debugger is active!
+2025-10-18 16:04:36,403 [INFO]  * Debugger PIN: 132-479-061
+2025-10-18 16:04:36,673 [WARNING]  * Debugger is active!
+2025-10-18 16:04:36,677 [INFO]  * Debugger PIN: 132-479-061
+2025-10-18 16:08:20,506 [INFO] POST /intent - texto: "Quieres que realice la transferencia usando tus datos?" meta: {'source': 'api-a-direct'}
+2025-10-18 16:08:20,508 [INFO] 127.0.0.1 - - [18/Oct/2025 16:08:20] "POST /intent HTTP/1.1" 200 -
+2025-10-18 16:08:20,714 [INFO] POST /intent - texto: "Quieres que realice la transferencia usando tus datos?" meta: {'ui_session_id': None}
+2025-10-18 16:08:20,715 [INFO] 127.0.0.1 - - [18/Oct/2025 16:08:20] "POST /intent HTTP/1.1" 200 -
