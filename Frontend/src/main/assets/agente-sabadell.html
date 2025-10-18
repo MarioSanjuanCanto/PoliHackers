@@ -14,7 +14,49 @@
         body {
             font-family: 'Inter', sans-serif;
             overflow: hidden;
-            background-color: transparent;
+            background-color: #f0f2f5;
+        }
+        #mobile-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 414px;
+            height: 896px;
+            background-color: #1a1a1a;
+            border-radius: 60px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 0 10px #111;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #mobile-screen {
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            border-radius: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        #speaker-notch {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 30px;
+            background-color: #1a1a1a;
+            border-radius: 20px;
+            z-index: 100;
+        }
+        #side-button {
+             position: absolute;
+            top: 120px;
+            right: -24px;
+            width: 8px;
+            height: 100px;
+            background: #111;
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
         }
         #agent-container {
             position: absolute;
@@ -138,53 +180,59 @@
     </style>
 </head>
 <body>
-<div id="app-background" class="w-full h-full p-6 pt-12 transition-filter duration-500 fixed inset-0 -z-10 bg-gray-100">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">Mis Cuentas</h1>
-        <div class="w-10 h-10 bg-gray-300 rounded-full"></div>
-    </div>
-    <div class="bg-white p-4 rounded-lg shadow mb-4">
-        <p class="text-gray-600">Cuenta Principal</p>
-        <p class="text-2xl font-semibold text-gray-900">1.234,56 €</p>
-    </div>
-    <div class="bg-white p-4 rounded-lg shadow mb-4">
-        <p class="text-gray-600">Cuenta de Ahorro</p>
-        <p class="text-2xl font-semibold text-gray-900">5.678,90 €</p>
-    </div>
-    <div class="grid grid-cols-3 gap-4 text-center">
-        <div class="bg-white p-3 rounded-lg shadow"><p class="text-sm">Transferir</p></div>
-        <div class="bg-white p-3 rounded-lg shadow"><p class="text-sm">Bizum</p></div>
-        <div class="bg-white p-3 rounded-lg shadow"><p class="text-sm">Tarjetas</p></div>
-    </div>
-</div>
-
-<div id="blur-overlay"></div>
-
-<div id="agent-container">
-    <div class="w-full h-full flex flex-col rounded-3xl overflow-hidden">
-        <div id="canvas-container">
-            <div id="speech-bubble">¡Hola! Soy SABI.</div>
+<div id="mobile-frame">
+    <div id="side-button"></div>
+    <div id="mobile-screen">
+        <div id="speaker-notch"></div>
+        <div id="app-background" class="w-full h-full p-6 pt-12 transition-filter duration-500 bg-gray-100">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">Mis Cuentas</h1>
+                <div class="w-10 h-10 bg-gray-300 rounded-full"></div>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow mb-4">
+                <p class="text-gray-600">Cuenta Principal</p>
+                <p class="text-2xl font-semibold text-gray-900">1.234,56 €</p>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow mb-4">
+                <p class="text-gray-600">Cuenta de Ahorro</p>
+                <p class="text-2xl font-semibold text-gray-900">5.678,90 €</p>
+            </div>
+            <div class="grid grid-cols-3 gap-4 text-center">
+                <div class="bg-white p-3 rounded-lg shadow"><p class="text-sm">Transferir</p></div>
+                <div class="bg-white p-3 rounded-lg shadow"><p class="text-sm">Bizum</p></div>
+                <div class="bg-white p-3 rounded-lg shadow"><p class="text-sm">Tarjetas</p></div>
+            </div>
         </div>
 
-        <div id="chat-interface-wrapper" class="p-4 pt-0 flex-grow flex-col justify-end hidden">
-            <div id="chat-history" class="flex-grow overflow-y-auto mb-4 space-y-4 p-2">
-            </div>
+        <div id="blur-overlay"></div>
 
-            <div id="options" class="mb-4 space-y-2 fade-in-up">
-                <button class="quick-option-btn w-full bg-gray-200 text-gray-800 text-left p-3 rounded-lg text-sm hover:bg-gray-300 transition">Ver último movimiento</button>
-                <button class="quick-option-btn w-full bg-gray-200 text-gray-800 text-left p-3 rounded-lg text-sm hover:bg-gray-300 transition">Hacer una transferencia</button>
-                <button class="quick-option-btn w-full bg-gray-200 text-gray-800 text-left p-3 rounded-lg text-sm hover:bg-gray-300 transition">Contactar con un gestor</button>
-            </div>
+        <div id="agent-container">
+            <div class="w-full h-full flex flex-col rounded-3xl overflow-hidden">
+                <div id="canvas-container">
+                    <div id="speech-bubble">¡Hola! Soy SABI.</div>
+                </div>
 
-            <form id="chat-form" class="flex items-center space-x-2 fade-in-up">
-                <input type="text" id="chat-input" placeholder="Escribe tu consulta ✨..." class="flex-grow border border-gray-300 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="off">
-                <button id="mic-button" type="button" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm5 2a1 1 0 11-2 0V4a1 1 0 112 0v2zm-4 0a1 1 0 11-2 0V4a1 1 0 112 0v2zM3 9a1 1 0 00-1 1v.01A7.002 7.002 0 009 17v1.99a1 1 0 102 0V17a7.002 7.002 0 007-6.99V10a1 1 0 10-2 0v.01a5.002 5.002 0 01-4 4.9V10a1 1 0 10-2 0v4.91A5.002 5.002 0 015 10.01V10a1 1 0 00-1-1z" />
-                    </svg>
-                </button>
-                <button type="submit" class="hidden">Enviar</button>
-            </form>
+                <div id="chat-interface-wrapper" class="p-4 pt-0 flex-grow flex-col justify-end hidden">
+                    <div id="chat-history" class="flex-grow overflow-y-auto mb-4 space-y-4 p-2">
+                    </div>
+
+                    <div id="options" class="mb-4 space-y-2 fade-in-up">
+                        <button class="quick-option-btn w-full bg-gray-200 text-gray-800 text-left p-3 rounded-lg text-sm hover:bg-gray-300 transition">Ver último movimiento</button>
+                        <button class="quick-option-btn w-full bg-gray-200 text-gray-800 text-left p-3 rounded-lg text-sm hover:bg-gray-300 transition">Hacer una transferencia</button>
+                        <button class="quick-option-btn w-full bg-gray-200 text-gray-800 text-left p-3 rounded-lg text-sm hover:bg-gray-300 transition">Contactar con un gestor</button>
+                    </div>
+
+                    <form id="chat-form" class="flex items-center space-x-2 fade-in-up">
+                        <input type="text" id="chat-input" placeholder="Escribe tu consulta ✨..." class="flex-grow border border-gray-300 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="off">
+                        <button id="mic-button" type="button" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm5 2a1 1 0 11-2 0V4a1 1 0 112 0v2zm-4 0a1 1 0 11-2 0V4a1 1 0 112 0v2zM3 9a1 1 0 00-1 1v.01A7.002 7.002 0 009 17v1.99a1 1 0 102 0V17a7.002 7.002 0 007-6.99V10a1 1 0 10-2 0v.01a5.002 5.002 0 01-4 4.9V10a1 1 0 10-2 0v4.91A5.002 5.002 0 015 10.01V10a1 1 0 00-1-1z" />
+                            </svg>
+                        </button>
+                        <button type="submit" class="hidden">Enviar</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -517,3 +565,4 @@
 </script>
 </body>
 </html>
+
