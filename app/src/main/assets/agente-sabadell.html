@@ -1,182 +1,33 @@
-<!-- Chosen Palette: Sabadell Corporate Blue & Neutrals -->
-<!-- Application Structure Plan: The application uses a two-state structure within a simulated mobile phone frame. State 1 (Initial): The agent is a non-intrusive, floating element on the right of the mobile screen. State 2 (Active): Upon user interaction, the agent becomes the focal point in a modal-like view, blurring the app background. This task-oriented design is chosen for its clarity and usability, allowing the user to seamlessly transition into and out of the chat interaction without leaving the main screen. The flow is: App Load -> Agent Floats In -> User Clicks Agent -> Chat UI Activates -> User Interacts or Clicks Background to Dismiss. -->
-<!-- Visualization & Content Choices: Report Info (3D Robot Image) -> Goal (Create a visually matching, interactive 3D agent for a mobile app screen) -> Viz/Presentation Method (3D model with Three.js, contained within a phone-sized div. All UI elements are positioned relative to this frame) -> Interaction (User text/voice input triggers a call to the Gemini Pro API for a text response. This text is then fed to the Gemini TTS API to generate audio) -> Justification (The mobile frame provides a realistic preview for development in Android Studio. Gemini integration creates a modern, state-of-the-art conversational experience.) -> Library/Method (Three.js, Vanilla JS, Gemini API [generateContent for chat, generateContent for TTS]). -->
-<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Asistente Virtual - Banco Sabadell</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            background-color: #f0f2f5;
-        }
-        #mobile-frame {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 414px;
-            height: 896px;
-            background-color: #1a1a1a;
-            border-radius: 60px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 0 10px #111;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        #mobile-screen {
-            width: 100%;
-            height: 100%;
-            background-color: #ffffff;
-            border-radius: 40px;
-            position: relative;
-            overflow: hidden;
-        }
-        #speaker-notch {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 180px;
-            height: 30px;
-            background-color: #1a1a1a;
-            border-radius: 20px;
-            z-index: 100;
-        }
-        #side-button {
-             position: absolute;
-            top: 120px;
-            right: -24px;
-            width: 8px;
-            height: 100px;
-            background: #111;
-            border-top-right-radius: 5px;
-            border-bottom-right-radius: 5px;
-        }
-        #agent-container {
-            position: absolute;
-            right: -300px;
-            bottom: 50%;
-            transform: translateY(50%);
-            width: 200px;
-            height: 350px;
-            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            z-index: 50;
-        }
-        #agent-container.floating-right {
-            right: 1rem;
-            cursor: pointer;
-        }
-        #agent-container.active {
-            right: 50%;
-            bottom: 50%;
-            transform: translate(50%, 50%);
-            width: 90%;
-            height: 85%;
-            max-width: 400px;
-            max-height: 650px;
-            cursor: default;
-            background-color: transparent;
-        }
-        #blur-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            z-index: 40;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.6s ease;
-        }
-        #blur-overlay.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        #canvas-container {
-            width: 100%;
-            height: 100%;
-            transition: height 0.6s ease;
-            position: relative;
-        }
-        #agent-container.active #canvas-container {
-            height: 40%;
-        }
-        #speech-bubble {
-            position: absolute;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #004870;
-            color: white;
-            padding: 10px 18px;
-            border-radius: 20px;
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.5s ease 0.5s;
-            white-space: nowrap;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .fade-in-up {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.5s forwards;
-        }
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        #chat-history {
-            scrollbar-width: thin;
-            scrollbar-color: #004870 #e5e7eb;
-        }
-        #chat-history::-webkit-scrollbar {
-            width: 6px;
-        }
-        #chat-history::-webkit-scrollbar-track {
-            background: #e5e7eb;
-        }
-        #chat-history::-webkit-scrollbar-thumb {
-            background-color: #004870;
-            border-radius: 20px;
-            border: 3px solid #e5e7eb;
-        }
-        .loader {
-            display: flex;
-            align-items: center;
-        }
-        .loader .dot {
-            background-color: #004870;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin: 0 2px;
-            animation: wave 1.4s infinite ease-in-out;
-        }
-        .loader .dot:nth-child(2) {
-            animation-delay: -1.2s;
-        }
-        .loader .dot:nth-child(3) {
-            animation-delay: -1.0s;
-        }
-        @keyframes wave {
-            0%, 60%, 100% {
-                transform: initial;
-            }
-            30% {
-                transform: translateY(-10px);
-            }
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; overflow: hidden; margin:0; padding:0;}
+        #mobile-frame {position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:414px; height:896px; background-color:#1a1a1a; border-radius:60px; box-shadow:0 20px 40px rgba(0,0,0,0.4),0 0 0 10px #111; padding:20px; box-sizing:border-box;}
+        #mobile-screen {width:100%; height:100%; background-color:#ffffff; border-radius:40px; overflow:hidden; position:relative;}
+        #speaker-notch {position:absolute; top:20px; left:50%; transform:translateX(-50%); width:180px; height:30px; background-color:#1a1a1a; border-radius:20px; z-index:100;}
+        #side-button {position:absolute; top:120px; right:-24px; width:8px; height:100px; background:#111; border-top-right-radius:5px; border-bottom-right-radius:5px;}
+        #agent-container {position:absolute; right:-300px; bottom:50%; transform:translateY(50%); width:200px; height:350px; transition:all 0.8s cubic-bezier(0.68,-0.55,0.27,1.55); z-index:50;}
+        #agent-container.floating-right {right:1rem; cursor:pointer;}
+        #agent-container.active {right:50%; bottom:50%; transform:translate(50%,50%); width:90%; height:85%; max-width:400px; max-height:650px; background-color:transparent; cursor:default;}
+        #blur-overlay {position:absolute; inset:0; background-color:rgba(0,0,0,0.3); backdrop-filter:blur(5px); z-index:40; opacity:0; pointer-events:none; transition:opacity 0.6s ease;}
+        #blur-overlay.visible {opacity:1; pointer-events:auto;}
+        #canvas-container {width:100%; height:100%; position:relative; transition:height 0.6s ease;}
+        #agent-container.active #canvas-container {height:40%;}
+        #speech-bubble {position:absolute; bottom:2rem; left:50%; transform:translateX(-50%); background-color:#004870; color:white; padding:10px 18px; border-radius:20px; font-size:14px; white-space:nowrap; opacity:0; transition:opacity 0.5s ease 0.5s; box-shadow:0 4px 6px rgba(0,0,0,0.1);}
+        #chat-history {scrollbar-width: thin; scrollbar-color: #004870 #e5e7eb;}
+        #chat-history::-webkit-scrollbar {width: 6px;}
+        #chat-history::-webkit-scrollbar-thumb {background-color:#004870; border-radius:20px;}
+        .loader {display:flex; align-items:center;}
+        .loader .dot {background-color:#004870; width:8px; height:8px; border-radius:50%; margin:0 2px; animation:wave 1.4s infinite ease-in-out;}
+        @keyframes wave {0%,60%,100%{transform:initial;}30%{transform:translateY(-10px);}}
+        #mic-button {margin-left:5px;}
     </style>
 </head>
 <body>
@@ -184,7 +35,7 @@
     <div id="side-button"></div>
     <div id="mobile-screen">
         <div id="speaker-notch"></div>
-        <div id="app-background" class="w-full h-full p-6 pt-12 transition-filter duration-500 bg-gray-100">
+        <div id="app-background" class="w-full h-full p-6 pt-12 bg-gray-100">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-bold text-gray-800">Mis Cuentas</h1>
                 <div class="w-10 h-10 bg-gray-300 rounded-full"></div>
@@ -206,29 +57,22 @@
 
         <div id="blur-overlay"></div>
 
-        <div id="agent-container">
+        <div id="agent-container" class="floating-right">
             <div class="w-full h-full flex flex-col rounded-3xl overflow-hidden">
                 <div id="canvas-container">
+                    <div id="three-container" class="absolute inset-0"></div>
                     <div id="speech-bubble">¡Hola! Soy SABI.</div>
                 </div>
-
-                <div id="chat-interface-wrapper" class="p-4 pt-0 flex-grow flex-col justify-end hidden">
-                    <div id="chat-history" class="flex-grow overflow-y-auto mb-4 space-y-4 p-2">
-                    </div>
-
-                    <div id="options" class="mb-4 space-y-2 fade-in-up">
+                <div id="chat-interface-wrapper" class="p-4 flex-grow flex-col justify-end hidden">
+                    <div id="chat-history" class="flex-grow overflow-y-auto mb-4 space-y-4 p-2"></div>
+                    <div id="options" class="mb-4 space-y-2">
                         <button class="quick-option-btn w-full bg-gray-200 text-gray-800 text-left p-3 rounded-lg text-sm hover:bg-gray-300 transition">Ver último movimiento</button>
                         <button class="quick-option-btn w-full bg-gray-200 text-gray-800 text-left p-3 rounded-lg text-sm hover:bg-gray-300 transition">Hacer una transferencia</button>
                         <button class="quick-option-btn w-full bg-gray-200 text-gray-800 text-left p-3 rounded-lg text-sm hover:bg-gray-300 transition">Contactar con un gestor</button>
                     </div>
-
-                    <form id="chat-form" class="flex items-center space-x-2 fade-in-up">
-                        <input type="text" id="chat-input" placeholder="Escribe tu consulta ✨..." class="flex-grow border border-gray-300 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="off">
-                        <button id="mic-button" type="button" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm5 2a1 1 0 11-2 0V4a1 1 0 112 0v2zm-4 0a1 1 0 11-2 0V4a1 1 0 112 0v2zM3 9a1 1 0 00-1 1v.01A7.002 7.002 0 009 17v1.99a1 1 0 102 0V17a7.002 7.002 0 007-6.99V10a1 1 0 10-2 0v.01a5.002 5.002 0 01-4 4.9V10a1 1 0 10-2 0v4.91A5.002 5.002 0 015 10.01V10a1 1 0 00-1-1z" />
-                            </svg>
-                        </button>
+                    <form id="chat-form" class="flex items-center space-x-2">
+                        <input id="chat-input" type="text" placeholder="Escribe tu consulta ✨..." class="flex-grow border border-gray-300 rounded-full py-2 px-4 focus:ring-2 focus:ring-blue-500" autocomplete="off" />
+                        <button id="mic-button" type="button" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition">🎤</button>
                         <button type="submit" class="hidden">Enviar</button>
                     </form>
                 </div>
@@ -236,333 +80,130 @@
         </div>
     </div>
 </div>
+
 <script>
     const agentContainer = document.getElementById('agent-container');
     const blurOverlay = document.getElementById('blur-overlay');
     const chatInterfaceWrapper = document.getElementById('chat-interface-wrapper');
-    const canvasContainer = document.getElementById('canvas-container');
     const speechBubble = document.getElementById('speech-bubble');
-    const micButton = document.getElementById('mic-button');
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
     const chatHistory = document.getElementById('chat-history');
     const quickOptionBtns = document.querySelectorAll('.quick-option-btn');
 
-    let scene, camera, renderer, avatar;
     let isChatActive = false;
-    let isListening = false;
-    let isAgentProcessing = false;
-    let audioContext;
-
-    const apiKey = "";
-    const systemPrompt = "Eres un asistente virtual amigable y profesional del Banco Sabadell. Tu nombre es 'SABI'. Tu objetivo es ayudar a los clientes con sus consultas bancarias de manera clara, concisa y segura. No puedes realizar transacciones reales (transferencias, pagos, etc.), pero puedes guiar a los usuarios sobre cómo hacerlas. Si te piden información personal o sensible como saldos de cuentas o datos de tarjetas, debes negarte educadamente y explicar que por seguridad no puedes acceder a esos datos. Responde siempre en español.";
+    const apiKey = null; // Aviso temporal, agrega tu API Key aquí cuando la tengas
 
     function activateChat() {
-        if (isChatActive) return;
-        isChatActive = true;
-        agentContainer.classList.remove('floating-right');
-        agentContainer.classList.add('active');
-        blurOverlay.classList.add('visible');
-        speechBubble.style.opacity = '0';
-        setTimeout(() => {
-            chatInterfaceWrapper.classList.remove('hidden');
-            chatInterfaceWrapper.classList.add('flex');
-        }, 400);
+      if(isChatActive) return;
+      isChatActive = true;
+      agentContainer.classList.add('active');
+      blurOverlay.classList.add('visible');
+      speechBubble.style.opacity = '0';
+      setTimeout(()=>{ chatInterfaceWrapper.classList.remove('hidden'); chatInterfaceWrapper.classList.add('flex'); },400);
     }
 
     function deactivateChat() {
-        if (!isChatActive) return;
-        isChatActive = false;
-        agentContainer.classList.remove('active');
-        agentContainer.classList.add('floating-right');
-        blurOverlay.classList.remove('visible');
-        chatInterfaceWrapper.classList.add('hidden');
-        chatInterfaceWrapper.classList.remove('flex');
+      isChatActive = false;
+      agentContainer.classList.remove('active');
+      blurOverlay.classList.remove('visible');
+      chatInterfaceWrapper.classList.add('hidden');
     }
 
-    agentContainer.addEventListener('click', () => { if (!isChatActive) activateChat(); });
+    agentContainer.addEventListener('click', ()=>{ if(!isChatActive) activateChat(); });
     blurOverlay.addEventListener('click', deactivateChat);
 
-    function createAvatar() {
-        const avatarGroup = new THREE.Group();
-        const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xf0f0f0, metalness: 0.1, roughness: 0.3 });
-        const visorMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8, roughness: 0.2 });
-        const glowMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-
-        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.8, 1.5, 32), bodyMaterial);
-        body.position.y = -0.75;
-        avatarGroup.add(body);
-
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 32, 32), bodyMaterial);
-        head.position.y = 0.5;
-        avatarGroup.add(head);
-
-        const earPodGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.5, 16);
-        const leftEarPod = new THREE.Mesh(earPodGeometry, bodyMaterial);
-        leftEarPod.rotation.z = Math.PI / 2;
-        leftEarPod.position.set(-0.7, 0.5, 0);
-        avatarGroup.add(leftEarPod);
-
-        const rightEarPod = new THREE.Mesh(earPodGeometry, bodyMaterial);
-        rightEarPod.rotation.z = -Math.PI / 2;
-        rightEarPod.position.set(0.7, 0.5, 0);
-        avatarGroup.add(rightEarPod);
-
-        const visor = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.4, 0.3), visorMaterial);
-        visor.position.set(0, 0.5, 0.55);
-        avatarGroup.add(visor);
-
-        const eyeGeometry = new THREE.SphereGeometry(0.1, 16, 16);
-        const leftEye = new THREE.Mesh(eyeGeometry, glowMaterial);
-        leftEye.position.set(-0.3, 0.5, 0.65);
-        avatarGroup.add(leftEye);
-        const rightEye = new THREE.Mesh(eyeGeometry, glowMaterial);
-        rightEye.position.set(0.3, 0.5, 0.65);
-        avatarGroup.add(rightEye);
-
-        const armGroup = new THREE.Group();
-        armGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.6, 16), bodyMaterial));
-        const armTopSphere = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), bodyMaterial);
-        armTopSphere.position.y = 0.3;
-        const armBottomSphere = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), bodyMaterial);
-        armBottomSphere.position.y = -0.3;
-        armGroup.add(armTopSphere, armBottomSphere);
-        const leftArm = armGroup.clone();
-        leftArm.position.set(-0.9, -0.4, 0);
-        leftArm.rotation.z = Math.PI / 4;
-        avatarGroup.add(leftArm);
-        const rightArm = armGroup.clone();
-        rightArm.name = "rightArm";
-        rightArm.position.set(0.9, -0.2, 0);
-        rightArm.rotation.x = -Math.PI / 4;
-        avatarGroup.add(rightArm);
-
-        const createGlowRing = (radius, y_pos, tube_radius = 0.02) => {
-            const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, tube_radius, 16, 100), glowMaterial);
-            ring.rotation.x = Math.PI / 2;
-            ring.position.y = y_pos;
-            return ring;
-        };
-        avatarGroup.add(createGlowRing(0.61, -0.1));
-        avatarGroup.add(createGlowRing(0.75, -0.8));
-        avatarGroup.add(createGlowRing(0.71, 0.5));
-
-        avatarGroup.scale.set(0.8, 0.8, 0.8);
-        avatarGroup.position.y = -0.2;
-        return avatarGroup;
-    }
-
-    function init3D() {
-        scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
-        camera.position.z = 4;
-        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        canvasContainer.appendChild(renderer.domElement);
-
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-        scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
-        directionalLight.position.set(5, 10, 7.5);
-        scene.add(directionalLight);
-
-        avatar = createAvatar();
-        scene.add(avatar);
-
-        window.addEventListener('resize', onWindowResize, false);
-        animate();
-    }
-
-    function onWindowResize() {
-        if (!renderer) return;
-        const newWidth = canvasContainer.clientWidth;
-        const newHeight = canvasContainer.clientHeight;
-        if(newWidth > 0 && newHeight > 0){
-            camera.aspect = newWidth / newHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(newWidth, newHeight);
-        }
-    }
-
-    function animate() {
-        if (!renderer) return;
-        requestAnimationFrame(animate);
-        const time = Date.now();
-        avatar.position.y = -0.2 + Math.sin(time * 0.0008 * 2) * 0.1;
-        avatar.rotation.y = Math.sin(time * 0.0008 * 0.7) * 0.3;
-        const rightArm = avatar.getObjectByName("rightArm");
-        if (rightArm) {
-            rightArm.rotation.z = -Math.PI / 2.5 + Math.sin(time * 0.005) * 0.4;
-        }
-        renderer.render(scene, camera);
-    }
-
     function addMessageToHistory(text, sender) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `w-full flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
-
-        if (text === 'loading') {
-            messageDiv.innerHTML = `
-                <div class="bg-gray-200 text-gray-800 rounded-lg py-2 px-4 max-w-[80%]">
-                    <div class="loader">
-                        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-                    </div>
-                </div>`;
-            messageDiv.id = 'loading-indicator';
-        } else {
-             messageDiv.innerHTML = `
-                <div class="${sender === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'} rounded-lg py-2 px-4 max-w-[80%]">
-                    ${text}
-                </div>`;
-        }
-        chatHistory.appendChild(messageDiv);
-        chatHistory.scrollTop = chatHistory.scrollHeight;
+      const div = document.createElement('div');
+      div.className = `w-full flex ${sender==='user'?'justify-end':'justify-start'}`;
+      div.innerHTML = `<div class="${sender==='user'?'bg-blue-600 text-white':'bg-gray-200 text-gray-800'} rounded-lg py-2 px-4 max-w-[80%]">${text}</div>`;
+      chatHistory.appendChild(div);
+      chatHistory.scrollTop = chatHistory.scrollHeight;
     }
 
-    async function handleUserMessage(message) {
-        if (!message.trim() || isAgentProcessing) return;
-        isAgentProcessing = true;
-        addMessageToHistory(message, 'user');
-        addMessageToHistory('loading', 'agent');
-
-        try {
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            const payload = {
-                contents: [{ parts: [{ text: message }] }],
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-            };
-
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (!response.ok) throw new Error(`API Error: ${response.status}`);
-            const result = await response.json();
-            const agentText = result.candidates?.[0]?.content?.parts?.[0]?.text || "No he podido procesar tu solicitud.";
-
-            document.getElementById('loading-indicator')?.remove();
-            addMessageToHistory(agentText, 'agent');
-            await speakWithGeminiTTS(agentText);
-
-        } catch (error) {
-            console.error("Error calling Gemini API:", error);
-            document.getElementById('loading-indicator')?.remove();
-            const errorText = "Lo siento, estoy teniendo problemas para conectarme. Inténtalo de nuevo más tarde.";
-            addMessageToHistory(errorText, 'agent');
-             await speakWithGeminiTTS(errorText);
-        } finally {
-            isAgentProcessing = false;
-        }
+    async function handleUserMessage(msg) {
+      addMessageToHistory(msg,'user');
+      addMessageToHistory("Un momento...",'agent');
+      if(!apiKey){
+        chatHistory.lastChild.remove();
+        addMessageToHistory("💡 Aún no tienes tu API Key de Gemini.",'agent');
+        return;
+      }
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+      const payload = {contents:[{parts:[{text:msg}]}], systemInstruction:{parts:[{text:"Eres SABI, asistente virtual de Banco Sabadell."}]}};
+      const response = await fetch(url,{method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)});
+      const data = await response.json();
+      const reply = data.candidates?.[0]?.content?.[0]?.text || "No he podido procesar tu solicitud.";
+      chatHistory.lastChild.remove();
+      addMessageToHistory(reply,'agent');
     }
 
-    async function speakWithGeminiTTS(text) {
-         try {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-            const payload = {
-                contents: [{ parts: [{ text: text }] }],
-                generationConfig: {
-                    responseModalities: ["AUDIO"],
-                    speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Sulafat" } } }
-                },
-                model: "gemini-2.5-flash-preview-tts"
-            };
-
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (!response.ok) throw new Error(`TTS API Error: ${response.status}`);
-            const result = await response.json();
-            const audioData = result.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-
-            if (audioData) {
-                const audioBuffer = await audioContext.decodeAudioData(base64ToArrayBuffer(audioData));
-                const source = audioContext.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(audioContext.destination);
-                source.start(0);
-            }
-        } catch (error) {
-            console.error("Error in TTS generation or playback:", error);
-        }
-    }
-
-    function base64ToArrayBuffer(base64) {
-        const binaryString = window.atob(base64);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        return bytes.buffer;
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.lang = 'es-ES';
-        recognition.interimResults = false;
-        micButton.addEventListener('click', () => {
-            if(isAgentProcessing) return;
-            if (isListening) recognition.stop();
-            else recognition.start();
-        });
-        recognition.onstart = () => {
-            isListening = true;
-            micButton.classList.add('bg-red-500', 'hover:bg-red-600');
-            micButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-            chatInput.placeholder = "Escuchando...";
-        };
-        recognition.onend = () => {
-            isListening = false;
-            micButton.classList.remove('bg-red-500', 'hover:bg-red-600');
-            micButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
-            chatInput.placeholder = "Escribe tu consulta ✨...";
-        };
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            chatInput.value = transcript;
-            handleUserMessage(transcript);
-        };
-        recognition.onerror = (event) => {
-            console.error("Error en el reconocimiento de voz:", event.error);
-            chatInput.placeholder = "Error al reconocer voz.";
-        };
-    } else {
-        micButton.disabled = true;
-    }
-
-    chatForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const message = chatInput.value;
-        chatInput.value = '';
-        handleUserMessage(message);
+    chatForm.addEventListener('submit', e=>{
+      e.preventDefault();
+      if(chatInput.value.trim()){
+        handleUserMessage(chatInput.value.trim());
+        chatInput.value="";
+      }
     });
 
-    quickOptionBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            handleUserMessage(btn.textContent);
-        });
+    quickOptionBtns.forEach(b=>b.addEventListener('click', ()=> handleUserMessage(b.textContent)));
+
+    window.addEventListener('load', ()=>{ setTimeout(()=>{ speechBubble.style.opacity=1; },1000); });
+
+    /* ===================== THREE.JS - SABI 3D FLOTA ===================== */
+    const container = document.getElementById('three-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, container.clientWidth/container.clientHeight,0.1,1000);
+    camera.position.z = 3;
+
+    const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+
+    const light = new THREE.PointLight(0xffffff,1);
+    light.position.set(10,10,10);
+    scene.add(light);
+
+    const sabiGeometry = new THREE.SphereGeometry(0.5,32,32);
+    const sabiMaterial = new THREE.MeshStandardMaterial({color:0x00ffcc, emissive:0x008888, metalness:0.5, roughness:0.5});
+    const sabiSphere = new THREE.Mesh(sabiGeometry, sabiMaterial);
+    scene.add(sabiSphere);
+
+    let clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      let t = clock.getElapsedTime();
+      sabiSphere.position.y = Math.sin(t)*0.3;
+      sabiSphere.rotation.y +=0.01;
+      renderer.render(scene,camera);
+    }
+    animate();
+
+    window.addEventListener('resize', ()=>{
+      camera.aspect = container.clientWidth/container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
     });
 
-    window.addEventListener('load', () => {
-        init3D();
-        setTimeout(() => {
-            agentContainer.classList.add('floating-right');
-        }, 300);
-        setTimeout(() => {
-            speechBubble.style.opacity = '1';
-            speakWithGeminiTTS(speechBubble.textContent);
-        }, 1200);
+    /* ===================== RECONOCIMIENTO DE VOZ ===================== */
+    let recognition;
+    if('webkitSpeechRecognition' in window){
+      recognition = new webkitSpeechRecognition();
+      recognition.lang='es-ES';
+      recognition.continuous=false;
+      recognition.interimResults=false;
+
+      recognition.onresult=function(event){
+        const texto = event.results[0][0].transcript;
+        chatInput.value=texto;
+        handleUserMessage(texto);
+      };
+    }
+
+    const micBtn = document.getElementById('mic-button');
+    micBtn.addEventListener('click', ()=>{
+      if(recognition) recognition.start();
     });
 </script>
 </body>
 </html>
-
