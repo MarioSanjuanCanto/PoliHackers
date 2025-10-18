@@ -1,0 +1,527 @@
+{
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "89f9c18b-8d8c-47f9-8be8-5b9dcaece85a",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "fce15d29-20db-488f-a8de-fd18456f5ea5",
+        "name": "Webhook",
+        "webhookId": "89f9c18b-8d8c-47f9-8be8-5b9dcaece85a"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "be9d02ee-e2cd-4076-8498-e3ff01e93c20",
+                "name": "Input_client",
+                "value": "={{ $json.body.texto }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          224,
+          0
+        ],
+        "id": "79571d8d-3e63-4643-b2c0-58ee204f9220",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "gpt-4o-mini",
+            "mode": "list",
+            "cachedResultName": "gpt-4o-mini"
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          464,
+          240
+        ],
+        "id": "fe24b6f3-a8af-4ff0-871d-30832abb83e6",
+        "name": "OpenAI Chat Model",
+        "credentials": {
+          "openAiApi": {
+            "id": "0d33jtwUD6MBDZYl",
+            "name": "OpenAi account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Users_Input: {{ $json.Input_client }}",
+          "hasOutputParser": true,
+          "options": {
+            "systemMessage": "User message:\n{{ $json.Input_client }}\n\n---\nSystem instructions:\nYou are an intelligent message dispatcher.  \nYour job is to carefully analyze the user's message and classify it into **one of three categories**:\n\n1. **Message** → The user is asking about the services or offerings provided by the client.  \n\n2. **Fraud** → The message seems to involve suspicious, fraudulent, or unusual activity or an stange transaction.  \n\n3. **Action** → The user wants to perform an action within the app (e.g., make a payment, go to the payment seciton, update info, book a service, etc.).\n"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 2.2,
+        "position": [
+          464,
+          0
+        ],
+        "id": "cd668743-d074-4284-92d3-ef0f57ca1514",
+        "name": "AI Agent"
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n  \"category\": \"<Message | Fraud | Action>\",\n  \"reasoning\": \"<brief explanation of why you classified it this way>\"\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.3,
+        "position": [
+          608,
+          208
+        ],
+        "id": "862f552a-9913-4862-8ad8-d1c3b9817e8a",
+        "name": "Structured Output Parser"
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.output.category }}",
+                      "rightValue": "Action",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "ff43e640-b747-43f6-a8e5-11c07502fdca"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "d49e5f15-6b8a-4adc-9855-ad4b580eb263",
+                      "leftValue": "={{ $json.output.category }}",
+                      "rightValue": "Message",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "5e18b45c-d0ce-4f2d-9378-ff352da04e72",
+                      "leftValue": "={{ $json.output.category }}",
+                      "rightValue": "Fraud",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.3,
+        "position": [
+          800,
+          -16
+        ],
+        "id": "4ac33d57-8694-439c-8455-b01eba44455e",
+        "name": "Switch"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Clients_Input:  {{ $('Edit Fields').item.json.Input_client }}\n\n---- \nInstructions:\nThe client’s input suggests potential fraudulent activity or an unsafe action. Write a message as an  assistant advising the client to proceed carefully. The tone should be calm, professional, and protective. Remind the client to double-check all details and confirm that the operation truly reflects their intentions before proceeding. Make the message short\n\nMessage style:\nWrite the message as if it were spoken by a helpful chatbot — natural, clear, and easy for the client to understand.",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 2.2,
+        "position": [
+          1088,
+          416
+        ],
+        "id": "1f65c80a-0eb3-4660-afd1-293407e3bf6b",
+        "name": "AI Agent1"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "gpt-4o-mini",
+            "mode": "list",
+            "cachedResultName": "gpt-4o-mini"
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          1088,
+          608
+        ],
+        "id": "d7680f53-357b-4018-916c-ab584f1d99b5",
+        "name": "OpenAI Chat Model1",
+        "credentials": {
+          "openAiApi": {
+            "id": "0d33jtwUD6MBDZYl",
+            "name": "OpenAi account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Clients_Input:  {{ $('Edit Fields').item.json.Input_client }}\n\n---- \nInstructions:\nAnswer the clients message.\n\nMessage style:\nWrite the message as if it were spoken by a helpful chatbot — natural, clear, and easy for the client to understand.\n\nNote:\nFor getting information to answer the client use the informatin added ",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 2.2,
+        "position": [
+          1088,
+          0
+        ],
+        "id": "e0ae0969-d7e7-45ae-883a-9a31f1d8e1e1",
+        "name": "AI Agent2"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "gpt-4o-mini",
+            "mode": "list",
+            "cachedResultName": "gpt-4o-mini"
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          1056,
+          240
+        ],
+        "id": "ba82e99b-9a91-4a72-989d-51c59388fa29",
+        "name": "OpenAI Chat Model2",
+        "credentials": {
+          "openAiApi": {
+            "id": "0d33jtwUD6MBDZYl",
+            "name": "OpenAi account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sessionIdType": "customKey",
+          "sessionKey": "={{ $json.output.reasoning }}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+        "typeVersion": 1.3,
+        "position": [
+          1168,
+          160
+        ],
+        "id": "7167d133-843d-468b-b576-f08348649208",
+        "name": "Simple Memory"
+      },
+      {
+        "parameters": {
+          "toolDescription": "Txt With bank's information",
+          "url": "https://docs.google.com/document/d/1b6peNxeZ1d2KDbMpUuyJGUk9rBQxHMSA07xRS1eY7cg/export?format=txt",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequestTool",
+        "typeVersion": 4.2,
+        "position": [
+          1280,
+          256
+        ],
+        "id": "64dc7032-ea2d-465e-83e7-6b018474b7be",
+        "name": "HTTP Request"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Clients_Input:  {{ $('Edit Fields').item.json.Input_client }}\n\n---- \nSystem Instructions:\nYou are an intelligent assistant that decides which page a user should be directed to in the app.\nYou must strictly follow the mappings provided in the Google Doc and never invent or guess information.\n\nThe Google Doc contains the following mappings between actions and destinations:\n\nbizum → destination: \"/index/bizum\"\nloan → destination: \"/index/loans\"\nother → destination: \"None\"\n\n\nYour Task:\n\nYou will receive a user’s intended action (a short text describing what they want to do in the app).\n\nFind which action in the Google Doc matches or most closely corresponds to the user’s intent.\n\nIf a match is found, return only the destination path (the text after destination:).\n\nIf no matching action exists, return the destination for “other”, which is \"None\".\n\nDo not generate or assume new paths — only use the ones listed above.",
+          "hasOutputParser": true,
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 2.2,
+        "position": [
+          1088,
+          -384
+        ],
+        "id": "cc2ec403-21bf-4ec6-ad97-2d9a1d06ef48",
+        "name": "AI Agent3"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "gpt-4o-mini",
+            "mode": "list",
+            "cachedResultName": "gpt-4o-mini"
+          },
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          1056,
+          -160
+        ],
+        "id": "4556ca05-c1d5-4cc9-83b5-4ffacb82b2fb",
+        "name": "OpenAI Chat Model3",
+        "credentials": {
+          "openAiApi": {
+            "id": "0d33jtwUD6MBDZYl",
+            "name": "OpenAi account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n\t\"path\": \"<path>\",\n\t\"Instructions for the users\": \"<Instructions>\"\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.3,
+        "position": [
+          1328,
+          -144
+        ],
+        "id": "f2ef369b-8afc-43b8-bf0a-0e185521fb5b",
+        "name": "Structured Output Parser1"
+      },
+      {
+        "parameters": {
+          "toolDescription": "document with paths to return for each action",
+          "url": "https://docs.google.com/document/d/1-JRPPY-H11Jh45_Q667JQ0-aXB5YcLCRCf699WP5Lk8/export?format=txt",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequestTool",
+        "typeVersion": 4.2,
+        "position": [
+          1216,
+          -160
+        ],
+        "id": "435da5f1-67ad-4c2b-aed4-f471821f0f3c",
+        "name": "HTTP Request1"
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured Output Parser": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch": {
+        "main": [
+          [
+            {
+              "node": "AI Agent3",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "AI Agent2",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "AI Agent1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model1": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent1",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model2": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent2",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Simple Memory": {
+        "ai_memory": [
+          [
+            {
+              "node": "AI Agent2",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HTTP Request": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent2",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model3": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent3",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured Output Parser1": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "AI Agent3",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HTTP Request1": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent3",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "pinData": {},
+    "meta": {
+      "templateCredsSetupCompleted": true,
+      "instanceId": "2c9ab7f0c04819594ee36516e222817a2fa1380d74ab8210a9930dd43d994653"
+    }
+  }
