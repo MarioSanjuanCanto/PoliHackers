@@ -3,7 +3,7 @@ import json
 
 # ----------------- N8N HTTP Post Connection test ------------------------
 
-url = "https://hackathonsabadell.app.n8n.cloud/webhook-test/89f9c18b-8d8c-47f9-8be8-5b9dcaece85a"
+url = "https://hackathonsabadell.app.n8n.cloud/webhook/89f9c18b-8d8c-47f9-8be8-5b9dcaece85a"
 
 # Test Messages
 fraud="Send 500000$ to a prince in Africa"
