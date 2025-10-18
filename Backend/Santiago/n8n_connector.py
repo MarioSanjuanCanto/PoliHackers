@@ -18,13 +18,10 @@ def request_models(input:str)->str:
 
 
     try:
-        #Sending the request to the model
         response = requests.post(url, json=payload, headers=headers, timeout=30)
 
-        # Check if it was successful
         response.raise_for_status()
 
-        # Try to parse JSON response
         try:
             data = response.json()
             print("Data received from n8n:")

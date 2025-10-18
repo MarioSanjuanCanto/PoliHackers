@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-hf_token = ""
+hf_token = "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"
 
 
 def translate(input: str) -> str:
