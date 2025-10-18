@@ -7,7 +7,7 @@ import stt
 
 app = FastAPI()
 
-UPLOAD_DIR = "uploads"
+UPLOAD_DIR = "../../../hackathon/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 

@@ -5,7 +5,7 @@ from google.genai.errors import APIError
 GOOGLE_API_KEY = "AIzaSyCfn7bt5OQAPLkQxfRHQFo6UH4tEbYycNA"
 
 
-def translate(file_path: str) -> str:
+def sptotext(file_path: str) -> str:
     try:
         client = genai.Client(api_key=GOOGLE_API_KEY)
     except Exception as e:
@@ -13,7 +13,7 @@ def translate(file_path: str) -> str:
         print(f"Detalles del error: {e}")
         exit()
 
-    FILE_PATH = r'C:\Users\santi\PycharmProjects\deep\hackathon\output_audio.wav'
+    FILE_PATH = r'C:\Users\santi\PycharmProjects\deep\PoliHackers\Backend\Santiago\output_audio.wav'
 
     TRANSCRIPTION_PROMPT = 'Genera una transcripción del discurso en este audio.'
 
@@ -31,7 +31,8 @@ def translate(file_path: str) -> str:
                 model=MODEL_NAME,
                 contents=[TRANSCRIPTION_PROMPT, myfile]
             )
-            print(response.text)
+            solution = response.text
+            print(solution)
 
         except APIError as e:
             print(f"\nError de la API de Gemini: {e}")
@@ -41,4 +42,4 @@ def translate(file_path: str) -> str:
         finally:
             if myfile:
                 client.files.delete(name=myfile.name)
-    return response.text
+    return solution
