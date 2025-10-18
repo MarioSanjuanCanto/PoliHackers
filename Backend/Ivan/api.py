@@ -1,5 +1,6 @@
 # api.py
 import os, json, hmac, hashlib, uuid, requests, subprocess, pathlib, tempfile
+from flask import CORS
 from flask import Flask, request, jsonify
 
 # --- Modo de integración con API A ---
@@ -23,6 +24,8 @@ TIMEOUT_S        = float(os.getenv("TIMEOUT_S", "90"))
 ROUTER_HMAC_SECRET = os.getenv("ROUTER_HMAC_SECRET", "")  # para verificar /from-api-a
 
 app = Flask(__name__)
+
+CORS(app)
 
 def verify_hmac(sig_header: str, raw_body: bytes, secret: str) -> bool:
     if not secret:
