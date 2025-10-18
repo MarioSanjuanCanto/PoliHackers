@@ -504,18 +504,21 @@
         }
 
         // Función para llamar a tu API de FastAPI
-        async function callFastAPI() {
+        async function callFastAPI(inputText = "test input") {
             try {
                 console.log('Llamando a la API de FastAPI...');
                 const response = await fetch('http://127.0.0.1:8000/predict', {
-                    method: 'GET',
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                    }
+                    },
+                    body: JSON.stringify({
+                        input: inputText
+                    })
                 });
 
                 if (response.ok) {
-                    const data = await response.text();
+                    const data = await response.json();
                     console.log('Respuesta de la API:', data);
                     return data;
                 } else {
@@ -531,10 +534,10 @@
         // Función para probar la API (puedes llamarla desde la consola o agregar un botón)
         async function testFastAPI() {
             try {
-                const result = await callFastAPI();
+                const result = await callFastAPI("Hola desde la web");
                 console.log('Resultado de la API:', result);
                 // Opcional: mostrar el resultado en el chat
-                addMessageToHistory(`API Response: ${result}`, 'agent');
+                addMessageToHistory(`API Response: ${JSON.stringify(result)}`, 'agent');
                 return result;
             } catch (error) {
                 console.error('Error en testFastAPI:', error);

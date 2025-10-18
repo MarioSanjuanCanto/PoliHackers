@@ -5,7 +5,7 @@ import json
 
 url = "https://hackathonsabadell.app.n8n.cloud/webhook/89f9c18b-8d8c-47f9-8be8-5b9dcaece85a"
 
-def request_models(input:str)->str:
+def request_models(input:str):
     # JSON Message to send to n8n
     payload = {
         "texto" : input
@@ -15,7 +15,6 @@ def request_models(input:str)->str:
     headers = {
         "Content-Type": "application/json"
     }
-
 
     try:
         #Sending the request to the model
@@ -29,15 +28,19 @@ def request_models(input:str)->str:
             data = response.json()
             print("Data received from n8n:")
             print(json.dumps(data, indent=4))
+            return data  # Devolver el diccionario JSON
         except ValueError:
             # If response is not JSON, print raw text
             print("An unexpected error occurred")
             print(response.text)
+            return {"error": "Invalid JSON response", "raw_text": response.text}
 
     except requests.exceptions.Timeout:
         print("The request timed out waiting for a response.")
+        return {"error": "Request timeout"}
     except requests.exceptions.RequestException as e:
         print(f"Error while sending request: {e}")
+        return {"error": f"Request failed: {str(e)}"}
 
 
 
