@@ -38,3 +38,16 @@
 2025-10-18 16:08:20,508 [INFO] 127.0.0.1 - - [18/Oct/2025 16:08:20] "POST /intent HTTP/1.1" 200 -
 2025-10-18 16:08:20,714 [INFO] POST /intent - texto: "Quieres que realice la transferencia usando tus datos?" meta: {'ui_session_id': None}
 2025-10-18 16:08:20,715 [INFO] 127.0.0.1 - - [18/Oct/2025 16:08:20] "POST /intent HTTP/1.1" 200 -
+2025-10-18 17:14:49,817 [INFO]  * Detected change in 'C:\\Users\\Ivan\\Desktop\\PoliHackers\\PoliHackers\\Backend\\Ivan\\api.py', reloading
+2025-10-18 17:14:49,869 [INFO]  * Detected change in 'C:\\Users\\Ivan\\Desktop\\PoliHackers\\PoliHackers\\Backend\\Ivan\\api.py', reloading
+2025-10-18 17:14:49,956 [INFO]  * Restarting with stat
+2025-10-18 17:14:49,968 [INFO]  * Restarting with stat
+2025-10-18 17:14:50,801 [WARNING]  * Debugger is active!
+2025-10-18 17:14:50,803 [WARNING]  * Debugger is active!
+2025-10-18 17:14:50,805 [INFO]  * Debugger PIN: 132-479-061
+2025-10-18 17:14:50,809 [INFO]  * Debugger PIN: 132-479-061
+2025-10-18 17:46:45,300 [INFO]  * Detected change in 'C:\\Users\\Ivan\\Desktop\\PoliHackers\\PoliHackers\\Backend\\Ivan\\api.py', reloading
+2025-10-18 17:46:45,344 [INFO]  * Restarting with stat
+2025-10-18 17:46:45,753 [WARNING]  * Debugger is active!
+2025-10-18 17:46:45,756 [INFO]  * Debugger PIN: 132-479-061
+2025-10-18 17:47:24,957 [INFO]  * Detected change in 'C:\\Users\\Ivan\\Desktop\\PoliHackers\\PoliHackers\\Backend\\Ivan\\api.py', reloading

@@ -13,8 +13,18 @@ app.add_middleware(
 )
 
 @app.get("/predict")
-def predict():
+def predict(input):
     print("API WORKS")
+
+    # si audio enviar a santi
+    
+
+    # enviar a n8n 
+    n8n.request_models(input)
+
+    
+
     return "hola"
+
 
 #uvicorn main:app --reload
