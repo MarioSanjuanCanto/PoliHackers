@@ -472,42 +472,24 @@
             addMessageToHistory(message, 'user');
             addMessageToHistory('loading', 'agent');
 
-            try {
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-                const payload = {
-                    contents: [{ parts: [{ text: message }] }],
-                    systemInstruction: { parts: [{ text: systemPrompt }] },
-                };
+            // Guardar el mensaje en una variable
+            const userMessage = message;
+            console.log('Mensaje guardado:', userMessage);
 
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!response.ok) throw new Error(`API Error: ${response.status}`);
-                const result = await response.json();
-                const agentText = result.candidates?.[0]?.content?.parts?.[0]?.text || "No he podido procesar tu solicitud.";
+            // Pasar el mensaje a speakWithFastAPI
+            await speakWithFastAPI(userMessage);
 
-                document.getElementById('loading-indicator')?.remove();
-                addMessageToHistory(agentText, 'agent');
-                await speakWithGeminiTTS(agentText);
-
-            } catch (error) {
-                console.error("Error calling Gemini API:", error);
-                document.getElementById('loading-indicator')?.remove();
-                const errorText = "Lo siento, estoy teniendo problemas para conectarme. Inténtalo de nuevo más tarde.";
-                addMessageToHistory(errorText, 'agent');
-                await speakWithGeminiTTS(errorText);
-            } finally {
-                isAgentProcessing = false;
-            }
+            isAgentProcessing = false;
         }
 
         // Función para llamar a tu API de FastAPI
         async function callFastAPI(inputText = "test input") {
             try {
                 console.log('Llamando a la API de FastAPI...');
-                const response = await fetch('http://127.0.0.1:8000/predict', {
+                console.log('URL:', 'http://localhost:8000/predict');
+                console.log('Payload:', { input: inputText });
+
+                const response = await fetch('http://localhost:8000/predict', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -517,16 +499,28 @@
                     })
                 });
 
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Respuesta de la API:', data);
                     return data;
                 } else {
                     console.error('Error en la respuesta:', response.status);
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('Error text:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status}, text: ${errorText}`);
                 }
             } catch (error) {
                 console.error('Error al llamar a la API:', error);
+                console.error('Error type:', error.name);
+                console.error('Error message:', error.message);
+
+                // Verificar si es un error de conexión
+                if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                    throw new Error('No se puede conectar con la API. Verifica que esté corriendo en http://127.0.0.1:8000');
+                }
                 throw error;
             }
         }
@@ -545,39 +539,28 @@
             }
         }
 
-        async function speakWithGeminiTTS(text) {
+        async function speakWithFastAPI(text) {
             try {
-                if (!audioContext) {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-                const payload = {
-                    contents: [{ parts: [{ text: text }] }],
-                    generationConfig: {
-                        responseModalities: ["AUDIO"],
-                        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Sulafat" } } }
-                    },
-                    model: "gemini-2.5-flash-preview-tts"
-                };
+                console.log('Enviando texto a FastAPI:', text);
+                const result = await callFastAPI(text);
+                console.log('Respuesta de FastAPI:', result);
 
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!response.ok) throw new Error(`TTS API Error: ${response.status}`);
-                const result = await response.json();
-                const audioData = result.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                // Remover el indicador de carga
+                document.getElementById('loading-indicator')?.remove();
 
-                if (audioData) {
-                    const audioBuffer = await audioContext.decodeAudioData(base64ToArrayBuffer(audioData));
-                    const source = audioContext.createBufferSource();
-                    source.buffer = audioBuffer;
-                    source.connect(audioContext.destination);
-                    source.start(0);
+                // Mostrar el mensaje directamente
+                if (result && result.message) {
+                    addMessageToHistory(result.message, 'agent');
+                } else {
+                    addMessageToHistory('No se pudo procesar la respuesta', 'agent');
                 }
+
+                return result;
             } catch (error) {
-                console.error("Error in TTS generation or playback:", error);
+                console.error("Error al llamar a FastAPI:", error);
+                // Remover el indicador de carga en caso de error
+                document.getElementById('loading-indicator')?.remove();
+                addMessageToHistory(`Error al procesar la solicitud: ${error.message}`, 'agent');
             }
         }
 
@@ -647,15 +630,11 @@
             }, 300);
             setTimeout(() => {
                 speechBubble.style.opacity = '1';
-                speakWithGeminiTTS(speechBubble.textContent);
+                // El agente está listo para recibir mensajes
             }, 1200);
         });
 
-        // Llamar a la API automáticamente cuando se carga la página
-        document.addEventListener('DOMContentLoaded', function () {
-            console.log('Página cargada, llamando a la API...');
-            testFastAPI();
-        });
+        // La API se llamará cuando el usuario presione Enter en el chat
     </script>
 </body>
 

@@ -22,7 +22,7 @@ class InputData(BaseModel):
 def predict(data: InputData):
     #Received input from the frontend
     input_text = data.input
-    input_text = "QUiero enviarle 1 millon de euros a un rey en africa"
+
     print(f"API WORKS - Received input: {input_text}")
     
     # check if audio in the future
@@ -54,9 +54,22 @@ def predict(data: InputData):
         "Instructions for the users": n8n_dict["Instructions for the users"]
         }  
     else:
-        return {
-            "output": n8n_dict
-        }
+        # Extraer el contenido del output si existe
+        if "output" in n8n_dict and "output" in n8n_dict["output"]:
+            return {
+                "message": n8n_dict["output"]["output"],
+                "raw_response": n8n_dict
+            }
+        elif "output" in n8n_dict:
+            return {
+                "message": n8n_dict["output"],
+                "raw_response": n8n_dict
+            }
+        else:
+            return {
+                "message": str(n8n_dict),
+                "raw_response": n8n_dict
+            }
 
 # Ejecutar con:
 # uvicorn main:app --reload
