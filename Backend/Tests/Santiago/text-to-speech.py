@@ -23,17 +23,15 @@ else:
 
     response = client.models.generate_content(
       model=MODEL_ID,
-      contents="Di 'Quieres que realice la tranferencia usando tus datos' en español de España",
+      contents="Di '¿Quieres que realice la tranferencia usando tus datos?' en español de España",
       config={"response_modalities": ['Audio']},
     )
 
     blob = response.candidates[0].content.parts[0].inline_data
     print(blob.mime_type)
 
-    # Save the audio to a file
     fname = 'output_audio.wav'
     with wave_file(fname) as wav:
         wav.writeframes(blob.data)
 
     print(f"Audio saved to {fname}")
-    # You would then open 'output_audio.wav' with a media player to listen.
