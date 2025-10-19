@@ -1,4 +1,5 @@
 # speech-to-text.py
+#imports
 import os, sys, json, hmac, hashlib, argparse
 from pathlib import Path
 import requests
@@ -10,19 +11,19 @@ parser = argparse.ArgumentParser(description="Speech to text via Gemini")
 parser.add_argument(
     "--file",
     dest="file_path",
-    required=False,  # el router puede usar FILE_PATH también
+    required=False,  # el router también lo puede usar
     help="Ruta del audio a transcribir (la API o el usuario la pasan)"
 )
 args = parser.parse_args()
 
-# --- HARD CODED API KEY (como pediste) ---
+# --- API KEY ---
 GOOGLE_API_KEY = "AIzaSyCfn7bt5OQAPLkQxfRHQFo6UH4tEbYycNA"
 
-# --- Modelo / prompt (permite override por ENV) ---
+# --- Prompt (permite override por ENV) ---
 MODEL_NAME = os.getenv("ASR_MODEL", "gemini-2.5-flash")
 PROMPT     = os.getenv("ASR_PROMPT", "Genera una transcripción del discurso en este audio.")
 
-# --- Opcional: enviar el texto al router o API B ---
+# --- Enviar el texto al router o API B (Por determinar el metodo al incorporar ALIA) ---
 ROUTER_PUSH_URL    = os.getenv("ROUTER_PUSH_URL")
 ROUTER_HMAC_SECRET = os.getenv("ROUTER_HMAC_SECRET", "")
 API_B_URL          = os.getenv("API_B_URL")
@@ -39,7 +40,7 @@ def main():
         print("ERROR: Falta GOOGLE_API_KEY (hardcoded)", file=sys.stderr)
         sys.exit(2)
 
-    # 1) Determinar la ruta del archivo (CLI o ENV)
+    #Determinar la ruta del archivo (CLI o ENV)
     file_env = os.getenv("FILE_PATH")
     audio_path_str = args.file_path or file_env
     if not audio_path_str:
@@ -51,7 +52,7 @@ def main():
         print(f"ERROR: No existe el archivo de audio en {audio_path}", file=sys.stderr)
         sys.exit(2)
 
-    # 2) Crear cliente de Gemini
+    #Crear cliente de Gemini
     client = genai.Client(api_key=GOOGLE_API_KEY)
     up = None
     try:
@@ -74,10 +75,10 @@ def main():
         except Exception:
             pass
 
-    # 3) Imprimir resultado (para el router)
+    #Imprimir resultado para el router
     print(text)
 
-    # 4) Opcional: enviar al router
+    # Enviar al router (Por determinar si se va a usar al incorporar ALIA)
     if ROUTER_PUSH_URL:
         payload = {"text": text}
         payload_bytes = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -90,7 +91,7 @@ def main():
         except requests.RequestException as e:
             print(f"WARN: No se pudo enviar al router: {e}", file=sys.stderr)
 
-    # 5) Opcional: enviar directo a API B
+    # Enviar directo a API B (Por determinar si se usará al incorporar ALIA)
     if API_B_URL:
         try:
             r = requests.post(API_B_URL, json={"text": text, "meta": {"source": "api-a-direct"}}, timeout=TIMEOUT_S)

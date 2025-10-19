@@ -1,26 +1,26 @@
 # api.py
+#imports
 import os, json, hmac, hashlib, uuid, requests, subprocess, pathlib, tempfile
 from flask import Flask, request, jsonify
 
 # --- Modo de integración con API A ---
 API_A_MODE       = os.getenv("API_A_MODE", "process")  # "process" | "http"
 
-# --- Integración API A por HTTP (opcional) ---
-API_A_URL_SYNC   = os.getenv("API_A_URL_SYNC")         # ej: http://127.0.0.1:9000/asr/sync
-API_A_URL_ASYNC  = os.getenv("API_A_URL_ASYNC")        # ej: http://127.0.0.1:9000/asr/async
+# --- Integración API A por HTTP ---
+API_A_URL_SYNC   = os.getenv("API_A_URL_SYNC")
+API_A_URL_ASYNC  = os.getenv("API_A_URL_ASYNC")
 USE_WEBHOOK      = bool(int(os.getenv("USE_WEBHOOK", "0")))
-API_A_SECRET     = os.getenv("API_A_SECRET", "")       # para HMAC firmas entrantes
+API_A_SECRET     = os.getenv("API_A_SECRET", "")
 
-# --- Integración API A por proceso (tu script original) ---
-API_A_PYTHON     = os.getenv("API_A_PYTHON", "python")     # ruta a python.exe si hace falta
+# --- Integración API A por proceso ---
+API_A_PYTHON     = os.getenv("API_A_PYTHON", "python")     # ruta a python.exe
 API_A_SCRIPT     = os.getenv("API_A_SCRIPT", r"C:\ruta\a\speech-to-text.py")
 
 # --- API B ---
-API_B_URL        = os.getenv("API_B_URL")               # ej: http://127.0.0.1:7000/intent
+API_B_URL        = os.getenv("API_B_URL")
 TIMEOUT_S        = float(os.getenv("TIMEOUT_S", "90"))
 
-# (opcional) si tu script te hace push al router:
-ROUTER_HMAC_SECRET = os.getenv("ROUTER_HMAC_SECRET", "")  # para verificar /from-api-a
+ROUTER_HMAC_SECRET = os.getenv("ROUTER_HMAC_SECRET", "")
 
 app = Flask(__name__)
 
@@ -58,12 +58,9 @@ def run_api_a_process_get_text(file_path: str) -> str:
 
 @app.post("/ingest")
 def ingest():
-    """
-    - Si JSON con 'text' => lo manda a API B.
-    - Si audio => según API_A_MODE:
-        * process: guarda audio en TMP y ejecuta speech-to-text.py --file <tmp>
-        * http:    reenvía audio a API A HTTP (sync/async)
-    """
+    #Si es un json con texto lo envia a API B, si es audio depende de si es por proceso o http
+    #Si es proceso lo guarda en TMP y ejecuta speech-to-text.py --file <tmp>
+    #Si es http reenvia el audio a API A por http sync/async (STT)
     ct = (request.headers.get("Content-Type") or "").lower()
     ui_session_id = request.args.get("ui_session_id")
     meta = {"ui_session_id": ui_session_id}
@@ -154,11 +151,8 @@ def ingest():
     return jsonify({"ok": False, "error": "UNSUPPORTED_CONTENT_TYPE"}), 415
 
 @app.post("/from-api-a")
+#Permite que speech-to-text.py mande el texto al router, y el router lo envia a API B.
 def from_api_a():
-    """
-    Permite que speech-to-text.py (si algún día hace push) mande el texto al router,
-    y el router lo reenvía a API B.
-    """
     raw = request.get_data()
     if not verify_hmac(request.headers.get("X-Signature", ""), raw, ROUTER_HMAC_SECRET):
         return jsonify({"ok": False, "error": "INVALID_SIGNATURE"}), 401
@@ -186,6 +180,6 @@ def health():
     else:
         ok_core &= bool(API_A_URL_SYNC or (API_A_URL_ASYNC and USE_WEBHOOK))
     return jsonify({"status": "ok" if ok_core else "misconfigured", "mode": API_A_MODE})
-
+#Poner api en modo escucha en el puerto 8080 de localhost -> 127.0.0.1:8080
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=8080, debug=True)
